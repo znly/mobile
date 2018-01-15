@@ -16,9 +16,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"golang.org/x/mobile/internal/importers"
 	"golang.org/x/mobile/internal/importers/java"
@@ -85,20 +83,6 @@ func main() {
 				gopath = string(filepath.ListSeparator)
 			}
 			ctx.GOPATH = gopath + tmpGopath
-		}
-	}
-
-	// Make sure the export data for any imported packages are up to date.
-	cmd := exec.Command("go", "install")
-	cmd.Args = append(cmd.Args, flag.Args()...)
-	cmd.Env = append(os.Environ(), "GOPATH="+ctx.GOPATH)
-	cmd.Env = append(cmd.Env, "GOROOT="+ctx.GOROOT)
-	if err := cmd.Run(); err != nil {
-		// Only report I/O errors. Errors from go install is expected for as-yet
-		// undefined Java wrappers.
-		if _, ok := err.(*exec.ExitError); !ok {
-			fmt.Fprintf(os.Stderr, "%s failed: %v", strings.Join(cmd.Args, " "), err)
-			os.Exit(1)
 		}
 	}
 
