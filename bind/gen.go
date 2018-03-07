@@ -484,6 +484,9 @@ func (g *Generator) isSupported(t types.Type) bool {
 	}
 	switch t := t.(type) {
 	case *types.Basic:
+		if t.Kind() == types.Invalid {
+			return false
+		}
 		return true
 	case *types.Slice:
 		switch e := t.Elem().(type) {
