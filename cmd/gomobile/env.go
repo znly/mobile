@@ -218,7 +218,7 @@ func envClang(sdkName string) (clang, cflags string, err error) {
 	}
 	sdk := strings.TrimSpace(string(out))
 
-	return clang, "-isysroot " + sdk, nil
+	return clang, "-isysroot " + sdk + " -fblocks -fmodules", nil
 }
 
 func archClang(goarch string) string {
