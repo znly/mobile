@@ -8,18 +8,17 @@ import (
 	"flag"
 	"fmt"
 	"go/build"
-	"go/importer"
 	"go/types"
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"golang.org/x/mobile/internal/importers"
 	"golang.org/x/mobile/internal/importers/java"
 	"golang.org/x/mobile/internal/importers/objc"
+	"golang.org/x/tools/go/loader"
 )
 
 var (
@@ -50,8 +49,7 @@ func run() {
 	} else {
 		langs = []string{"go", "java", "objc"}
 	}
-	oldCtx := build.Default
-	ctx := &build.Default
+	ctx := build.Default
 	if *tags != "" {
 		ctx.BuildTags = append(ctx.BuildTags, strings.Split(*tags, ",")...)
 	}
@@ -122,28 +120,21 @@ func run() {
 		}
 	}
 
-	// Make sure the export data for any imported packages are up to date.
-	cmd := exec.Command("go", "install", "-tags", strings.Join(ctx.BuildTags, " "))
-	cmd.Args = append(cmd.Args, flag.Args()...)
-	cmd.Env = append(os.Environ(), "GOPATH="+ctx.GOPATH)
-	cmd.Env = append(cmd.Env, "GOROOT="+ctx.GOROOT)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s", out)
-		exitStatus = 1
+	conf := loader.Config{
+		Build: &ctx,
+	}
+	for _, pkg := range allPkg {
+		conf.Import(pkg.ImportPath)
+	}
+	prog, err := conf.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
-
 	typePkgs := make([]*types.Package, len(allPkg))
-	imp := importer.Default()
 	for i, pkg := range allPkg {
-		var err error
-		typePkgs[i], err = imp.Import(pkg.ImportPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			return
-		}
+		typePkgs[i] = prog.Imported[pkg.ImportPath].Pkg
 	}
-	build.Default = oldCtx
 	for _, l := range langs {
 		for _, pkg := range typePkgs {
 			genPkg(l, pkg, typePkgs, classes, otypes)
