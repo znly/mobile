@@ -227,6 +227,7 @@ func addBuildFlags(cmd *command) {
 	cmd.flag.StringVar(&buildLdflags, "ldflags", "", "")
 	cmd.flag.StringVar(&buildTarget, "target", "android", "")
 	cmd.flag.StringVar(&buildBundleID, "bundleid", "org.golang.todo", "")
+	cmd.flag.StringVar(&initNDK, "ndk", "", "Android NDK path")
 
 	cmd.flag.BoolVar(&buildA, "a", false, "")
 	cmd.flag.BoolVar(&buildI, "i", false, "")
@@ -272,7 +273,6 @@ func goCmd(subcmd string, srcs []string, env []string, args ...string) error {
 	cmd := exec.Command(
 		"go",
 		subcmd,
-		"-pkgdir="+pkgdir(env),
 	)
 	if len(ctx.BuildTags) > 0 {
 		cmd.Args = append(cmd.Args, "-tags", strings.Join(ctx.BuildTags, " "))

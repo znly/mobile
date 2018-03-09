@@ -19,34 +19,18 @@ import (
 )
 
 var (
-	goos    = runtime.GOOS
-	goarch  = runtime.GOARCH
-	ndkarch string
+	goos   = runtime.GOOS
+	goarch = runtime.GOARCH
 )
-
-func init() {
-	switch runtime.GOARCH {
-	case "amd64":
-		ndkarch = "x86_64"
-	case "386":
-		ndkarch = "x86"
-	default:
-		ndkarch = runtime.GOARCH
-	}
-}
 
 var cmdInit = &command{
 	run:   runInit,
 	Name:  "init",
-	Usage: "[-u]",
-	Short: "install mobile compiler toolchain",
+	Usage: "-openal dir",
+	Short: "build OpenAL for Android",
 	Long: `
-Init builds copies of the Go standard library for mobile devices.
-It uses Xcode, if available, to build for iOS and uses the Android
-NDK from the ndk-bundle SDK package or from the -ndk flag, to build
-for Android.
 If a OpenAL source directory is specified with -openal, init will
-also build an Android version of OpenAL for use with gomobile build
+build an Android version of OpenAL for use with gomobile build
 and gomobile install.
 `,
 }
@@ -68,7 +52,6 @@ func runInit(cmd *command) error {
 	}
 	gomobilepath = filepath.Join(gopaths[0], "pkg/gomobile")
 
-	verpath := filepath.Join(gomobilepath, "version")
 	if buildX || buildN {
 		fmt.Fprintln(xout, "GOMOBILE="+gomobilepath)
 	}
@@ -99,36 +82,8 @@ func runInit(cmd *command) error {
 	}()
 
 	if buildN {
-		initNDK = "$NDK_PATH"
 		initOpenAL = "$OPENAL_PATH"
 	} else {
-		toolsDir := filepath.Join("prebuilt", archNDK(), "bin")
-		// Try the ndk-bundle SDK package package, if installed.
-		if initNDK == "" {
-			if sdkHome := os.Getenv("ANDROID_HOME"); sdkHome != "" {
-				path := filepath.Join(sdkHome, "ndk-bundle")
-				if st, err := os.Stat(filepath.Join(path, toolsDir)); err == nil && st.IsDir() {
-					initNDK = path
-				}
-			}
-		}
-		if initNDK != "" {
-			var err error
-			if initNDK, err = filepath.Abs(initNDK); err != nil {
-				return err
-			}
-			// Check if the platform directory contains a known subdirectory.
-			if _, err := os.Stat(filepath.Join(initNDK, toolsDir)); err != nil {
-				if os.IsNotExist(err) {
-					return fmt.Errorf("%q does not point to an Android NDK.", initNDK)
-				}
-				return err
-			}
-			ndkFile := filepath.Join(gomobilepath, "android_ndk_root")
-			if err := ioutil.WriteFile(ndkFile, []byte(initNDK), 0644); err != nil {
-				return err
-			}
-		}
 		if initOpenAL != "" {
 			var err error
 			if initOpenAL, err = filepath.Abs(initOpenAL); err != nil {
@@ -136,56 +91,17 @@ func runInit(cmd *command) error {
 			}
 		}
 	}
-	ndkRoot = initNDK
 	if err := envInit(); err != nil {
 		return err
 	}
 
-	if runtime.GOOS == "darwin" {
-		// Install common x/mobile packages for local development.
-		// These are often slow to compile (due to cgo) and easy to forget.
-		//
-		// Limited to darwin for now as it is common for linux to
-		// not have GLES installed.
-		//
-		// TODO: consider testing GLES installation and suggesting it here
-		for _, pkg := range commonPkgs {
-			if err := installPkg(pkg, nil); err != nil {
-				return err
-			}
-		}
-	}
-
 	// Install standard libraries for cross compilers.
 	start := time.Now()
-	if ndkRoot != "" {
-		// Ideally this would be -buildmode=c-shared.
-		// https://golang.org/issue/13234.
-		androidArgs := []string{"-gcflags=-shared", "-ldflags=-shared"}
-		for _, arch := range archs {
-			env := androidEnv[arch]
-			if err := installStd(env, androidArgs...); err != nil {
-				return err
-			}
-		}
-	}
-
-	if err := installDarwin(); err != nil {
-		return err
-	}
 
 	if err := installOpenAL(gomobilepath); err != nil {
 		return err
 	}
 
-	if buildX || buildN {
-		printcmd("go version > %s", verpath)
-	}
-	if !buildN {
-		if err := ioutil.WriteFile(verpath, goVersionOut, 0644); err != nil {
-			return err
-		}
-	}
 	if buildV {
 		took := time.Since(start) / time.Second * time.Second
 		fmt.Fprintf(os.Stderr, "\nDone, build took %s.\n", took)
@@ -312,56 +228,6 @@ var commonPkgs = []string{
 	"golang.org/x/mobile/gl",
 	"golang.org/x/mobile/app",
 	"golang.org/x/mobile/exp/app/debug",
-}
-
-func installDarwin() error {
-	if !xcodeAvailable() {
-		return nil
-	}
-	if err := installStd(darwinArmEnv); err != nil {
-		return err
-	}
-	if err := installStd(darwinArm64Env); err != nil {
-		return err
-	}
-	// TODO(crawshaw): darwin/386 for the iOS simulator?
-	if err := installStd(darwinAmd64Env, "-tags=ios"); err != nil {
-		return err
-	}
-	return nil
-}
-
-func installStd(env []string, args ...string) error {
-	return installPkg("std", env, args...)
-}
-
-func installPkg(pkg string, env []string, args ...string) error {
-	tOS, tArch, pd := getenv(env, "GOOS"), getenv(env, "GOARCH"), pkgdir(env)
-	if tOS != "" && tArch != "" {
-		if buildV {
-			fmt.Fprintf(os.Stderr, "\n# Installing %s for %s/%s.\n", pkg, tOS, tArch)
-		}
-		args = append(args, "-pkgdir="+pd)
-	} else {
-		if buildV {
-			fmt.Fprintf(os.Stderr, "\n# Installing %s.\n", pkg)
-		}
-	}
-
-	cmd := exec.Command("go", "install")
-	cmd.Args = append(cmd.Args, args...)
-	if buildV {
-		cmd.Args = append(cmd.Args, "-v")
-	}
-	if buildX {
-		cmd.Args = append(cmd.Args, "-x")
-	}
-	if buildWork {
-		cmd.Args = append(cmd.Args, "-work")
-	}
-	cmd.Args = append(cmd.Args, pkg)
-	cmd.Env = append([]string{}, env...)
-	return runCmd(cmd)
 }
 
 func mkdir(dir string) error {

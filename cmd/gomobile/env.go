@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -52,22 +51,6 @@ func buildEnvInit() (cleanup func(), err error) {
 		return nil, errors.New("toolchain not installed, run `gomobile init`")
 	}
 
-	// Read the NDK root path stored by gomobile init -ndk, if any.
-	if !buildN {
-		root, err := ioutil.ReadFile(filepath.Join(gomobilepath, "android_ndk_root"))
-		if err != nil && !os.IsNotExist(err) {
-			return nil, err
-		}
-		ndkRoot = string(root)
-		if ndkRoot != "" {
-			if _, err := os.Stat(filepath.Join(ndkRoot, "toolchains")); err != nil {
-				if os.IsNotExist(err) {
-					return nil, fmt.Errorf("The ndk path %q doesn't exist. Please re-run gomobile with the ndk-bundle install through the Android SDK manager or with the -ndk flag set.", ndkRoot)
-				}
-				return nil, err
-			}
-		}
-	}
 	if err := envInit(); err != nil {
 		return nil, err
 	}
@@ -83,15 +66,6 @@ func buildEnvInit() (cleanup func(), err error) {
 		tmpdir = "$WORK"
 		cleanupFn = func() {}
 	} else {
-		verpath := filepath.Join(gomobilepath, "version")
-		installedVersion, err := ioutil.ReadFile(verpath)
-		if err != nil {
-			return nil, errors.New("toolchain partially installed, run `gomobile init`")
-		}
-		if !bytes.Equal(installedVersion, goVersionOut) {
-			return nil, errors.New("toolchain out of date, run `gomobile init`")
-		}
-
 		tmpdir, err = ioutil.TempDir("", "gomobile-work-")
 		if err != nil {
 			return nil, err
@@ -110,6 +84,44 @@ func envInit() (err error) {
 	if err != nil {
 		return err
 	}
+
+	// Determine the NDK root path.
+	if buildN {
+		initNDK = "$NDK_PATH"
+	} else {
+		toolsDir := filepath.Join("prebuilt", archNDK(), "bin")
+		// Try the ndk-bundle SDK package package, if installed.
+		if initNDK == "" {
+			if sdkHome := os.Getenv("ANDROID_HOME"); sdkHome != "" {
+				path := filepath.Join(sdkHome, "ndk-bundle")
+				if st, err := os.Stat(filepath.Join(path, toolsDir)); err == nil && st.IsDir() {
+					initNDK = path
+				}
+			}
+		}
+		if initNDK != "" {
+			var err error
+			if initNDK, err = filepath.Abs(initNDK); err != nil {
+				return err
+			}
+			// Check if the platform directory contains a known subdirectory.
+			if _, err := os.Stat(filepath.Join(initNDK, toolsDir)); err != nil {
+				if os.IsNotExist(err) {
+					return fmt.Errorf("%q does not point to an Android NDK.", initNDK)
+				}
+				return err
+			}
+		}
+		if ndkRoot != "" {
+			if _, err := os.Stat(filepath.Join(ndkRoot, "toolchains")); err != nil {
+				if os.IsNotExist(err) {
+					return fmt.Errorf("The ndk path %q doesn't exist. Please re-run gomobile with the ndk-bundle installed through the Android SDK manager or with the -ndk flag set.", ndkRoot)
+				}
+				return err
+			}
+		}
+	}
+	ndkRoot = initNDK
 
 	// Setup the cross-compiler environments.
 
@@ -280,10 +292,6 @@ func getenv(env []string, key string) string {
 		}
 	}
 	return ""
-}
-
-func pkgdir(env []string) string {
-	return gomobilepath + "/pkg_" + getenv(env, "GOOS") + "_" + getenv(env, "GOARCH")
 }
 
 func archNDK() string {
