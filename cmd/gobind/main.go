@@ -29,6 +29,7 @@ var (
 	bootclasspath = flag.String("bootclasspath", "", "Java bootstrap classpath.")
 	classpath     = flag.String("classpath", "", "Java classpath.")
 	tags          = flag.String("tags", "", "build tags.")
+	goinstall     = flag.Bool("goinstall", true, "try to go install the package first.")
 )
 
 var usage = `The Gobind tool generates Java language bindings for Go.
@@ -121,7 +122,8 @@ func run() {
 	}
 
 	conf := loader.Config{
-		Build: &ctx,
+		Build:       &ctx,
+		AllowErrors: true,
 	}
 	for _, pkg := range allPkg {
 		conf.Import(pkg.ImportPath)
