@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["java.go"],
+    importpath = "golang.org/x/mobile/internal/importers/java",
+    visibility = ["//:__subpackages__"],
+    deps = ["//internal/importers:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["java_test.go"],
+    embed = [":go_default_library"],
+    deps = ["//internal/importers:go_default_library"],
+)

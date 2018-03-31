@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["glsprite.go"],
+    importpath = "golang.org/x/mobile/exp/sprite/glsprite",
+    visibility = ["//visibility:public"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "//event/size:go_default_library",
+            "//exp/f32:go_default_library",
+            "//exp/gl/glutil:go_default_library",
+            "//exp/sprite:go_default_library",
+            "//exp/sprite/clock:go_default_library",
+            "//geom:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "//event/size:go_default_library",
+            "//exp/f32:go_default_library",
+            "//exp/gl/glutil:go_default_library",
+            "//exp/sprite:go_default_library",
+            "//exp/sprite/clock:go_default_library",
+            "//geom:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "//event/size:go_default_library",
+            "//exp/f32:go_default_library",
+            "//exp/gl/glutil:go_default_library",
+            "//exp/sprite:go_default_library",
+            "//exp/sprite/clock:go_default_library",
+            "//geom:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)

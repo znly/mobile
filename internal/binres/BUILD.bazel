@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "arsc.go",
+        "binres.go",
+        "binres_string.go",
+        "node.go",
+        "pool.go",
+        "sdk.go",
+        "table.go",
+    ],
+    importpath = "golang.org/x/mobile/internal/binres",
+    visibility = ["//:__subpackages__"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["binres_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+)

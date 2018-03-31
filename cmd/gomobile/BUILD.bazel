@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "binary_xml.go",
+        "bind.go",
+        "bind_androidapp.go",
+        "bind_iosapp.go",
+        "build.go",
+        "build_androidapp.go",
+        "build_iosapp.go",
+        "cert.go",
+        "clean.go",
+        "dex.go",
+        "doc.go",
+        "env.go",
+        "init.go",
+        "install.go",
+        "main.go",
+        "manifest.go",
+        "strings_flag.go",
+        "version.go",
+        "writer.go",
+    ],
+    importpath = "golang.org/x/mobile/cmd/gomobile",
+    visibility = ["//visibility:private"],
+    deps = ["//internal/binres:go_default_library"],
+)
+
+go_binary(
+    name = "gomobile",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "binary_xml_test.go",
+        "bind_test.go",
+        "build_darwin_test.go",
+        "build_test.go",
+        "cert_test.go",
+        "init_test.go",
+        "writer_test.go",
+    ],
+    embed = [":go_default_library"],
+)
