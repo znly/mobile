@@ -31,6 +31,7 @@ var (
 	bootclasspath = flag.String("bootclasspath", "", "Java bootstrap classpath.")
 	classpath     = flag.String("classpath", "", "Java classpath.")
 	tags          = flag.String("tags", "", "build tags.")
+	goinstall     = flag.Bool("goinstall", true, "try to go install the package first.")
 )
 
 var usage = `The Gobind tool generates Java language bindings for Go.
@@ -131,14 +132,16 @@ func run() {
 	}
 
 	// Make sure the export data for any imported packages are up to date.
-	cmd := exec.Command("go", "install", "-tags", strings.Join(ctx.BuildTags, " "))
-	cmd.Args = append(cmd.Args, flag.Args()...)
-	cmd.Env = append(os.Environ(), "GOPATH="+ctx.GOPATH)
-	cmd.Env = append(cmd.Env, "GOROOT="+ctx.GOROOT)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s", out)
-		exitStatus = 1
-		return
+	if *goinstall {
+		cmd := exec.Command("go", "install", "-tags", strings.Join(ctx.BuildTags, " "))
+		cmd.Args = append(cmd.Args, flag.Args()...)
+		cmd.Env = append(os.Environ(), "GOPATH="+ctx.GOPATH)
+		cmd.Env = append(cmd.Env, "GOROOT="+ctx.GOROOT)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			fmt.Fprintf(os.Stderr, "%s", out)
+			exitStatus = 1
+			return
+		}
 	}
 
 	typePkgs := make([]*types.Package, len(allPkg))
