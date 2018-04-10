@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "callfn.go",
+        "callfn_386.s",
+        "callfn_amd64.s",
+        "callfn_arm.s",
+        "callfn_arm64.s",
+    ],
+    importpath = "golang.org/x/mobile/app/internal/callfn",
+    visibility = ["//app:__subpackages__"],
+)

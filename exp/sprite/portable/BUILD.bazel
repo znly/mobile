@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["portable.go"],
+    importpath = "golang.org/x/mobile/exp/sprite/portable",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//event/size:go_default_library",
+        "//exp/f32:go_default_library",
+        "//exp/sprite:go_default_library",
+        "//exp/sprite/clock:go_default_library",
+        "@org_golang_x_image//draw:go_default_library",
+        "@org_golang_x_image//math/f64:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["affine_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//event/size:go_default_library",
+        "//exp/f32:go_default_library",
+        "//geom:go_default_library",
+    ],
+)

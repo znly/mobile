@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["mouse.go"],
+    importpath = "golang.org/x/mobile/event/mouse",
+    visibility = ["//visibility:public"],
+    deps = ["//event/key:go_default_library"],
+)

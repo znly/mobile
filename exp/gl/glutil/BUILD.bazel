@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "context_darwin_desktop.go",
+        "context_x11.go",
+        "doc.go",
+        "glimage.go",
+        "glutil.go",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "-framework OpenGL",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "-lEGL",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/exp/gl/glutil",
+    visibility = ["//visibility:public"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "//event/size:go_default_library",
+            "//exp/f32:go_default_library",
+            "//geom:go_default_library",
+            "//gl:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "//event/size:go_default_library",
+            "//exp/f32:go_default_library",
+            "//geom:go_default_library",
+            "//gl:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "//event/size:go_default_library",
+            "//exp/f32:go_default_library",
+            "//geom:go_default_library",
+            "//gl:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["glimage_test.go"],
+    embed = [":go_default_library"],
+)

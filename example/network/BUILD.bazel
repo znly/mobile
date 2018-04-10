@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "main.go",
+        "main_x.go",
+    ],
+    importpath = "golang.org/x/mobile/example/network",
+    visibility = ["//visibility:private"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "//app:go_default_library",
+            "//event/lifecycle:go_default_library",
+            "//event/paint:go_default_library",
+            "//event/size:go_default_library",
+            "//gl:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "//app:go_default_library",
+            "//event/lifecycle:go_default_library",
+            "//event/paint:go_default_library",
+            "//event/size:go_default_library",
+            "//gl:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "//app:go_default_library",
+            "//event/lifecycle:go_default_library",
+            "//event/paint:go_default_library",
+            "//event/size:go_default_library",
+            "//gl:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+go_binary(
+    name = "network",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

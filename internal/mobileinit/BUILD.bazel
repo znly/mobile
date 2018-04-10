@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "ctx_android.go",
+        "mobileinit.go",
+        "mobileinit_android.go",
+        "mobileinit_ios.go",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "-landroid -llog",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/internal/mobileinit",
+    visibility = ["//:__subpackages__"],
+)

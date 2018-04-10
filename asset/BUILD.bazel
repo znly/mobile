@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "asset.go",
+        "asset_android.go",
+        "asset_darwin_armx.go",
+        "asset_desktop.go",
+        "doc.go",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "-landroid",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/asset",
+    visibility = ["//visibility:public"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "//internal/mobileinit:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
