@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "ref.go",
+        "seq.go",
+        "string.go",
+    ],
+    importpath = "golang.org/x/mobile/bind/seq",
+    visibility = ["//visibility:public"],
+    deps = ["//internal/mobileinit:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["string_test.go"],
+    embed = [":go_default_library"],
+)

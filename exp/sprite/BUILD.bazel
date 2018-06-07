@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["sprite.go"],
+    importpath = "golang.org/x/mobile/exp/sprite",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//event/size:go_default_library",
+        "//exp/f32:go_default_library",
+        "//exp/sprite/clock:go_default_library",
+    ],
+)

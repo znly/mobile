@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "affine.go",
+        "f32.go",
+        "mat3.go",
+        "mat4.go",
+        "table.go",
+        "vec3.go",
+        "vec4.go",
+    ],
+    importpath = "golang.org/x/mobile/exp/f32",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "affine_test.go",
+        "f32_test.go",
+    ],
+    embed = [":go_default_library"],
+)

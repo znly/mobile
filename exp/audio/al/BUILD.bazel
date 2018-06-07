@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "al.go",
+        "al_android.go",
+        "al_notandroid.go",
+        "alc.go",
+        "alc_android.go",
+        "alc_notandroid.go",
+        "const.go",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "-framework OpenAL",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "-lopenal",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "-lOpenAL32",
+        ],
+        "//conditions:default": [],
+    }),
+    copts = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "-DGOOS_darwin",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "-DGOOS_linux",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "-DGOOS_windows",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/exp/audio/al",
+    visibility = ["//visibility:public"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "//internal/mobileinit:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)

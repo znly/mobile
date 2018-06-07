@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "context_android.c",
+        "context_android.go",
+        "doc.go",
+        "seq_android.h",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "-llog",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/bind/java",
+    visibility = ["//visibility:public"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "//internal/mobileinit:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+    data = glob([
+        "*.java",
+        "*.support",
+    ]),
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["seq_test.go"],
+    embed = [":go_default_library"],
+    deps = ["//internal/importers/java:go_default_library"],
+)

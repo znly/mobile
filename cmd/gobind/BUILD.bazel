@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "gen.go",
+        "main.go",
+    ],
+    importpath = "golang.org/x/mobile/cmd/gobind",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//bind:go_default_library",
+        "//internal/importers:go_default_library",
+        "//internal/importers/java:go_default_library",
+        "//internal/importers/objc:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "gobind",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["gobind_test.go"],
+    embed = [":go_default_library"],
+)

@@ -1,0 +1,64 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "consts.go",
+        "dll_windows.go",
+        "doc.go",
+        "fn.go",
+        "gl.go",
+        "interface.go",
+        "types_prod.go",
+        "work.c",
+        "work.go",
+        "work.h",
+        "work_windows.go",
+        "work_windows_386.s",
+        "work_windows_amd64.s",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:linux": [
+            "-lGLESv2",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "-L/usr/X11R6/lib/ -lGLESv2",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "-framework OpenGL",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin_arm": [
+            "-framework OpenGLES",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin_arm64": [
+            "-framework OpenGLES",
+        ],
+        "//conditions:default": [],
+    }),
+    copts = select({
+        "@io_bazel_rules_go//go/platform:linux": [
+            "-Dos_linux",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "-Dos_openbsd",
+            "-I/usr/X11R6/include/",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "-Dos_osx",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin_arm": [
+            "-Dos_ios",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin_arm64": [
+            "-Dos_ios",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/gl",
+    visibility = ["//visibility:public"],
+)

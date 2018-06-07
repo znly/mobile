@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "font.go",
+        "font_android.go",
+        "font_darwin.go",
+        "font_linux.go",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "-framework CoreFoundation -framework CoreText",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/exp/font",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["font_test.go"],
+    embed = [":go_default_library"],
+)

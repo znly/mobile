@@ -1,0 +1,88 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "android.c",
+        "android.go",
+        "app.go",
+        "darwin_desktop.go",
+        "doc.go",
+        "shiny.go",
+        "x11.c",
+        "x11.go",
+    ],
+    cgo = True,
+    clinkopts = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "-landroid -llog -lEGL -lGLESv2",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "-framework Cocoa -framework OpenGL",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "-lEGL -lGLESv2 -lX11",
+        ],
+        "//conditions:default": [],
+    }),
+    copts = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "-x objective-c",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/mobile/app",
+    visibility = ["//visibility:public"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "//app/internal/callfn:go_default_library",
+            "//event/key:go_default_library",
+            "//event/lifecycle:go_default_library",
+            "//event/paint:go_default_library",
+            "//event/size:go_default_library",
+            "//event/touch:go_default_library",
+            "//geom:go_default_library",
+            "//internal/mobileinit:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "//event/key:go_default_library",
+            "//event/lifecycle:go_default_library",
+            "//event/paint:go_default_library",
+            "//event/size:go_default_library",
+            "//event/touch:go_default_library",
+            "//geom:go_default_library",
+            "//gl:go_default_library",
+            "//internal/mobileinit:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "//event/lifecycle:go_default_library",
+            "//event/paint:go_default_library",
+            "//event/size:go_default_library",
+            "//event/touch:go_default_library",
+            "//geom:go_default_library",
+            "//gl:go_default_library",
+            "//internal/mobileinit:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "//event/lifecycle:go_default_library",
+            "//event/mouse:go_default_library",
+            "//event/size:go_default_library",
+            "//event/touch:go_default_library",
+            "//gl:go_default_library",
+            "//internal/mobileinit:go_default_library",
+            "@org_golang_x_exp//shiny/driver/gldriver:go_default_library",
+            "@org_golang_x_exp//shiny/screen:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["app_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//app/internal/apptest:go_default_library",
+        "//event/size:go_default_library",
+    ],
+)
