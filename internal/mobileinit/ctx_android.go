@@ -55,6 +55,8 @@ static char* checkException(uintptr_t jnienv) {
 static void unlockJNI(JavaVM *vm) {
 	(*vm)->DetachCurrentThread(vm);
 }
+
+#pragma GCC visibility push(hidden)
 */
 import "C"
 

@@ -15,6 +15,7 @@ package main
 #include <stdint.h>
 #include <stdlib.h>
 #include "seq.h"
+#pragma GCC visibility push(hidden)
 */
 import "C"
 

@@ -12,6 +12,7 @@ package main
 // #cgo darwin CFLAGS: -D__GOBIND_DARWIN__
 // #include <stdlib.h>
 // #include "seq.h"
+// #pragma GCC visibility push(hidden)
 import "C"
 
 import (

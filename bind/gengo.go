@@ -44,6 +44,7 @@ package main
 #include "seq.h"
 #include "%[1]s.h"
 
+#pragma GCC visibility push(hidden)
 */
 import "C"
 

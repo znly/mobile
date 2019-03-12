@@ -21,6 +21,7 @@ adb logcat GoLog:I *:S
 #include <android/log.h>
 #include <stdlib.h>
 #include <string.h>
+#pragma GCC visibility push(hidden)
 */
 import "C"
 

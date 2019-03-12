@@ -7,6 +7,7 @@ package java // import "golang.org/x/mobile/bind/java"
 // #cgo LDFLAGS: -llog
 //
 //#include <jni.h>
+//#pragma GCC visibility push(hidden)
 import "C"
 
 import (

@@ -21,6 +21,7 @@ import (
 void asl_log_wrap(const char *str) {
 	asl_log(NULL, NULL, ASL_LEVEL_NOTICE, "%s", str);
 }
+#pragma GCC visibility push(hidden)
 */
 import "C"
 

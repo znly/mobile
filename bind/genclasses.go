@@ -938,6 +938,7 @@ package main
 #include <jni.h>
 #include "seq.h"
 #include "classes.h"
+#pragma GCC visibility push(hidden)
 */
 import "C"
 
