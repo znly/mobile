@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["ast.go"],
+    importpath = "golang.org/x/mobile/internal/importers",
+    visibility = ["//:__subpackages__"],
+)
