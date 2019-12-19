@@ -139,7 +139,7 @@ func run() {
 	defer func() {
 		build.Default = oldCtx
 	}()
-	imp := importer.For("source", nil)
+	imp := importer.For("gc", nil)
 	for i, pkg := range allPkg {
 		var err error
 		typePkgs[i], err = imp.Import(pkg.ImportPath)
